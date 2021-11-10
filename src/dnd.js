@@ -1,6 +1,29 @@
 import { Mediator } from "./mediator";
 import { px, setNodeStyle, translate3d } from "./utils";
 
+const DROP_AREA_IDS = ['drop-area-a', 'drop-area-b'];
+const DROP_AREAS = DROP_AREA_IDS.map(id => document.getElementById(id));
+
+/**
+ * Findout if there's a drop area below mouse position
+ *
+ * @param {object} evt
+ * @param {number} evt.clientX
+ * @param {number} evt.clientY
+ * @returns {undefined|HTMLElement} - return the element if found
+ */
+function getDropAreaBelow(evt) {
+  const dropArea = DROP_AREAS.find(dropArea => {
+    const rect = dropArea.getBoundingClientRect()
+    return (evt.clientX > rect.x
+      && evt.clientX < rect.x + rect.width
+      && evt.clientY > rect.y
+      && evt.clientY < rect.y + rect.height
+    );
+  });
+  return dropArea;
+}
+
 function reset(mediator) {
   document.removeEventListener("mousemove", mediator.receive);
   document.removeEventListener("mouseup", mediator.receive);
@@ -62,7 +85,12 @@ const dndMediator = new Mediator("idle", {
         ),
       });
     },
-    mouseup() {
+    mouseup(evt) {
+      const dropArea = getDropAreaBelow(evt);
+      if (dropArea) {
+        cachedCurrentTarget.parentElement.removeChild(cachedCurrentTarget);
+        dropArea.appendChild(cachedCurrentTarget);
+      }
       reset(dndMediator);
       dndMediator.setState("idle");
     },
