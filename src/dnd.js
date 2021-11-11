@@ -14,7 +14,7 @@ const DROP_AREAS = DROP_AREA_IDS.map(id => document.getElementById(id));
  */
 function getDropAreaBelow(evt) {
   const dropArea = DROP_AREAS.find(dropArea => {
-    const rect = dropArea.getBoundingClientRect()
+    const rect = dropArea.getBoundingClientRect();
     return (evt.clientX > rect.x
       && evt.clientX < rect.x + rect.width
       && evt.clientY > rect.y
@@ -44,9 +44,20 @@ function defaultDragImage(node) {
   return clone;
 }
 
+function defaultDropShadow(node) {
+  const clone = node.cloneNode(true);
+  setNodeStyle(clone, {
+    opacity: 0.5,
+  });
+  return clone;
+}
+
 let cachedCurrentTarget;
 let cachedOffsetCoords;
 let cachedDragImage;
+let dropShadow;
+let initialDropArea;
+let dropAreaCandidate;
 
 const dndMediator = new Mediator("idle", {
   idle: {
@@ -60,6 +71,10 @@ const dndMediator = new Mediator("idle", {
       const offsetY = evt.clientY - rect.top;
       cachedOffsetCoords = [offsetX, offsetY];
       cachedDragImage = defaultDragImage(cachedCurrentTarget);
+      dropShadow = defaultDropShadow(cachedCurrentTarget);
+      initialDropArea = cachedCurrentTarget.parentElement;
+      dropAreaCandidate = initialDropArea;
+      dropAreaCandidate.appendChild(dropShadow);
 
       setNodeStyle(cachedDragImage, {
         transform: translate3d(rect.left, rect.top),
@@ -73,6 +88,7 @@ const dndMediator = new Mediator("idle", {
       dndMediator.setState("dragging");
 
       await Promise.resolve();
+      cachedCurrentTarget.parentElement.removeChild(cachedCurrentTarget);
       document.body.appendChild(cachedDragImage);
     },
   },
@@ -84,15 +100,16 @@ const dndMediator = new Mediator("idle", {
           evt.clientY - cachedOffsetCoords[1]
         ),
       });
+      const dropArea = getDropAreaBelow(evt) || initialDropArea;
+      if (dropArea === dropAreaCandidate) return;
+      dropAreaCandidate = dropArea;
+      dropAreaCandidate.appendChild(dropShadow);
     },
     mouseup(evt) {
-      const dropArea = getDropAreaBelow(evt);
-      if (dropArea) {
-        cachedCurrentTarget.parentElement.removeChild(cachedCurrentTarget);
-        dropArea.appendChild(cachedCurrentTarget);
-      }
       reset(dndMediator);
       dndMediator.setState("idle");
+      dropAreaCandidate.appendChild(cachedCurrentTarget);
+      dropAreaCandidate.removeChild(dropShadow);
     },
   },
 });
