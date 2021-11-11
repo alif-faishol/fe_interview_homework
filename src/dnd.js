@@ -28,7 +28,6 @@ function reset(mediator) {
   document.removeEventListener("mousemove", mediator.receive);
   document.removeEventListener("mouseup", mediator.receive);
   mediator.setState("idle");
-  document.body.removeChild(cachedDragImage);
 }
 
 function defaultDragImage(node) {
@@ -110,6 +109,17 @@ const dndMediator = new Mediator("idle", {
       dndMediator.setState("idle");
       dropAreaCandidate.appendChild(cachedCurrentTarget);
       dropAreaCandidate.removeChild(dropShadow);
+      const targetRect = cachedCurrentTarget.getBoundingClientRect();
+      setNodeStyle(cachedDragImage, {
+        transform: translate3d(
+          targetRect.x,
+          targetRect.y,
+        ),
+        transition: 'transform 0.3s',
+      });
+      cachedDragImage.ontransitionend = () => {
+        document.body.removeChild(cachedDragImage);
+      };
     },
   },
 });
