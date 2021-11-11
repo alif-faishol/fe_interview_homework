@@ -1,5 +1,8 @@
 # Toggl Plan Take Home Project
 
+## Deployed Result
+[alif-toggl-plan-fe.surge.sh](https://alif-toggl-plan-fe.surge.sh)
+
 ## The Mission
 
 Hello there future Toggl Plan Frontend Developer 👋 Your mission, should you choose to accept it, is to add drop functionality to this template:
