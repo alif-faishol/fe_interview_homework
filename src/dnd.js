@@ -121,8 +121,8 @@ const dndMediator = new Mediator("idle", {
         ),
         transition: 'transform 0.3s',
       });
-      cachedDragImage.ontransitionend = () => {
-        document.body.removeChild(cachedDragImage);
+      cachedDragImage.ontransitionend = (event) => {
+        document.body.removeChild(event.currentTarget);
       };
     },
   },
