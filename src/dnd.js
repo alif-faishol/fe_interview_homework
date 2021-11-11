@@ -4,29 +4,13 @@ import { px, setNodeStyle, translate3d } from "./utils";
 const DROP_AREA_IDS = ['drop-area-a', 'drop-area-b'];
 const DROP_AREAS = DROP_AREA_IDS.map(id => document.getElementById(id));
 
-/**
- * Findout if there's a drop area below mouse position
- *
- * @param {object} evt
- * @param {number} evt.clientX
- * @param {number} evt.clientY
- * @returns {undefined|HTMLElement} - return the element if found
- */
-function getDropAreaBelow(evt) {
-  const dropArea = DROP_AREAS.find(dropArea => {
-    const rect = dropArea.getBoundingClientRect();
-    return (evt.clientX > rect.x
-      && evt.clientX < rect.x + rect.width
-      && evt.clientY > rect.y
-      && evt.clientY < rect.y + rect.height
-    );
-  });
-  return dropArea;
-}
-
 function reset(mediator) {
   document.removeEventListener("mousemove", mediator.receive);
   document.removeEventListener("mouseup", mediator.receive);
+  DROP_AREAS.forEach(dropArea => {
+    dropArea.removeEventListener("mouseenter", mediator.receive);
+    dropArea.removeEventListener("mouseleave", mediator.receive);
+  });
   mediator.setState("idle");
 }
 
@@ -83,6 +67,11 @@ const dndMediator = new Mediator("idle", {
 
       document.addEventListener("mousemove", dndMediator.receive);
       document.addEventListener("mouseup", dndMediator.receive);
+      // register drop areas
+      DROP_AREAS.forEach(dropArea => {
+        dropArea.addEventListener("mouseenter", dndMediator.receive);
+        dropArea.addEventListener("mouseleave", dndMediator.receive);
+      });
 
       dndMediator.setState("dragging");
 
@@ -99,7 +88,13 @@ const dndMediator = new Mediator("idle", {
           evt.clientY - cachedOffsetCoords[1]
         ),
       });
-      const dropArea = getDropAreaBelow(evt) || initialDropArea;
+    },
+    mouseleave(evt) {
+      dropAreaCandidate = initialDropArea;
+      dropAreaCandidate.appendChild(dropShadow);
+    },
+    mouseenter(evt) {
+      const dropArea = evt.currentTarget;
       if (dropArea === dropAreaCandidate) return;
       dropAreaCandidate = dropArea;
       dropAreaCandidate.appendChild(dropShadow);
