@@ -110,6 +110,15 @@ const dndMediator = new Mediator("idle", {
       dropAreaCandidate.appendChild(cachedCurrentTarget);
       dropAreaCandidate.removeChild(dropShadow);
       const targetRect = cachedCurrentTarget.getBoundingClientRect();
+      const dragImageRect = cachedDragImage.getBoundingClientRect();
+
+      // if not moved, remove cachedDragImage immediately
+      // without setting up transition
+      if (dragImageRect.x === targetRect.x && dragImageRect.y === targetRect.y) {
+        document.body.removeChild(cachedDragImage);
+        return;
+      }
+
       setNodeStyle(cachedDragImage, {
         transform: translate3d(
           targetRect.x,
