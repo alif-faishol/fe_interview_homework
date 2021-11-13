@@ -57,7 +57,6 @@ const dndMediator = new Mediator("idle", {
       dropShadow = defaultDropShadow(cachedCurrentTarget);
       initialDropArea = cachedCurrentTarget.parentElement;
       dropAreaCandidate = initialDropArea;
-      dropAreaCandidate.appendChild(dropShadow);
 
       setNodeStyle(cachedDragImage, {
         transform: translate3d(rect.left, rect.top),
@@ -76,7 +75,6 @@ const dndMediator = new Mediator("idle", {
       dndMediator.setState("dragging");
 
       await Promise.resolve();
-      cachedCurrentTarget.parentElement.removeChild(cachedCurrentTarget);
       document.body.appendChild(cachedDragImage);
     },
   },
@@ -90,20 +88,25 @@ const dndMediator = new Mediator("idle", {
       });
     },
     mouseleave(evt) {
+      if (dropAreaCandidate === initialDropArea) return;
+      dropAreaCandidate.removeChild(dropShadow);
       dropAreaCandidate = initialDropArea;
-      dropAreaCandidate.appendChild(dropShadow);
     },
     mouseenter(evt) {
       const dropArea = evt.currentTarget;
       if (dropArea === dropAreaCandidate) return;
       dropAreaCandidate = dropArea;
-      dropAreaCandidate.appendChild(dropShadow);
+      if (dropAreaCandidate !== initialDropArea) {
+        dropAreaCandidate.appendChild(dropShadow);
+      }
     },
     mouseup(evt) {
       reset(dndMediator);
       dndMediator.setState("idle");
-      dropAreaCandidate.appendChild(cachedCurrentTarget);
-      dropAreaCandidate.removeChild(dropShadow);
+      if (dropAreaCandidate !== initialDropArea) {
+        dropAreaCandidate.appendChild(cachedCurrentTarget);
+        dropAreaCandidate.removeChild(dropShadow);
+      }
       const targetRect = cachedCurrentTarget.getBoundingClientRect();
       const dragImageRect = cachedDragImage.getBoundingClientRect();
 
